@@ -24,7 +24,7 @@ public class GoogleMapAPIClient {
     private static final String PHOTO_PATH = "/maps/api/place/photo";
     private static final String DEFAULT_TYPE = "tourist_attraction";
     private static final int DEFAULT_RADIUS = 100;
-    private static final String API_KEY = "AIzaSyBBbj0-Xq4hIZ6c5JOitsrt_W7mKWwTp4Y";
+    private static final String API_KEY = "USE_YOUR_OWN_KEY";
 
     // TODO: implement three methods - findPlace, getNearbyPlaces, getPlaceDetails
 
