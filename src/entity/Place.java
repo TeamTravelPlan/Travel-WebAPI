@@ -1,23 +1,44 @@
 package entity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Comparator;
+
 public class Place {
     // Fill with location info, name, poi, type, image, etc.
     private String name;
+    private double lat;
+    private double lon;
     private double rating;
     private String imageUrl;
     private String placeId;
     private int userRatingsTotal;
+    private double score;
+    private double distance;
 
-    private Place(PlaceBuilder builder){
+    private Place(PlaceBuilder builder) {
         this.name = builder.name;
+        this.lat = builder.lat;
+        this.lon = builder.lon;
         this.rating = builder.rating;
         this.imageUrl = builder.imageUrl;
         this.placeId = builder.placeId;
         this.userRatingsTotal = builder.userRatingsTotal;
+        this.score = builder.score;
+        this.distance = builder.distance;
     }
 
     public String getName() {
         return name;
+    }
+
+    public double getLat() {
+        return lat;
+    }
+
+    public double getLon() {
+        return lon;
     }
 
     public double getRating() {
@@ -36,22 +57,68 @@ public class Place {
         return userRatingsTotal;
     }
 
+    public double getScore() {
+        return score;
+    }
+
+    public void setScore(double score) {
+        this.score = score;
+    }
+
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("name", name);
+            obj.put("lat", lat);
+            obj.put("lon", lon);
+            obj.put("rating", rating);
+            obj.put("imageUrl", imageUrl);
+            obj.put("placeId", placeId);
+            obj.put("userRatingsTotal", userRatingsTotal);
+            obj.put("score", score);
+            obj.put("distance", distance);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return obj;
+    }
+
     public static class PlaceBuilder {
         private String name;
+        private double lat;
+        private double lon;
         private double rating;
         private String imageUrl;
         private String placeId;
         private int userRatingsTotal;
+        private double score;
+        private double distance;
 
-        public void setName(String name){
+        public void setName(String name) {
             this.name = name;
         }
 
-        public void setRating(double rating){
+        public void setLat(double lat) {
+            this.lat = lat;
+        }
+
+        public void setLon(double lon) {
+            this.lon = lon;
+        }
+
+        public void setRating(double rating) {
             this.rating = rating;
         }
 
-        public void setImageUrl(String imageUrl){
+        public void setImageUrl(String imageUrl) {
             this.imageUrl = imageUrl;
         }
 
@@ -67,4 +134,21 @@ public class Place {
             return new Place(this);
         }
     }
+
+    public static Comparator<Place> scoreComparator = (place1, place2) -> {
+        if (place1.getUserRatingsTotal() >= 1000 && place2.getUserRatingsTotal() < 1000){
+            return -1;
+        }
+
+        if (place1.getUserRatingsTotal() < 1000 && place2.getUserRatingsTotal() >= 1000){
+            return 1;
+        }
+
+        if (place1.getScore() == place2.getScore()) {
+            return 0;
+        }
+
+        return place1.getScore() > place2.getScore() ? -1 : 1;
+    };
+
 }

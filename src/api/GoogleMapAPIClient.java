@@ -117,6 +117,16 @@ public class GoogleMapAPIClient {
                 builder.setName(result.getString("name"));
             }
 
+            if (!result.isNull("geometry")){
+                JSONObject geometry = result.getJSONObject("geometry");
+                if (!geometry.isNull("location")) {
+                    JSONObject location = geometry.getJSONObject("location");
+
+                    builder.setLat(location.getDouble("lat"));
+                    builder.setLon(location.getDouble("lng"));
+                }
+            }
+
             if (!result.isNull("rating")){
                 builder.setRating(result.getDouble("rating"));
             }
@@ -167,6 +177,8 @@ public class GoogleMapAPIClient {
         List<Place> places = client.getNearbyPlaces(-33.8670522, 151.1957362, null, DEFAULT_RADIUS);
         System.out.println("places length: " + places.size());
         System.out.println("places name: " + places.get(0).getName());
+        System.out.println("places lat: " + places.get(0).getLat());
+        System.out.println("places lon: " + places.get(0).getLon());
         System.out.println("places rating: " + places.get(0).getRating());
         System.out.println("places image url: " + places.get(0).getImageUrl());
         System.out.println("places id: " + places.get(0).getPlaceId());
