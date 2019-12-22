@@ -1,5 +1,6 @@
 package entity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,9 +17,13 @@ public class Place {
     private int userRatingsTotal;
     private double score;
     private double distance;
+    private String address;
+    private String website;
+    private JSONArray openPeriods;
 
     private Place(PlaceBuilder builder) {
         this.name = builder.name;
+        this.address = builder.address;
         this.lat = builder.lat;
         this.lon = builder.lon;
         this.rating = builder.rating;
@@ -27,10 +32,16 @@ public class Place {
         this.userRatingsTotal = builder.userRatingsTotal;
         this.score = builder.score;
         this.distance = builder.distance;
+        this.website = builder.website;
+        this.openPeriods = builder.openPeriods;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getAddress() {
+        return address;
     }
 
     public double getLat() {
@@ -61,22 +72,27 @@ public class Place {
         return score;
     }
 
-    public void setScore(double score) {
-        this.score = score;
-    }
+    public JSONArray getOpenPeriods() {return openPeriods; }
 
     public double getDistance() {
         return distance;
     }
 
+    public String getWebsite() {return website; }
+
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    public void setScore(double score) {
+        this.score = score;
     }
 
     public JSONObject toJSONObject() {
         JSONObject obj = new JSONObject();
         try {
             obj.put("name", name);
+            obj.put("address", address);
             obj.put("lat", lat);
             obj.put("lon", lon);
             obj.put("rating", rating);
@@ -85,6 +101,8 @@ public class Place {
             obj.put("userRatingsTotal", userRatingsTotal);
             obj.put("score", score);
             obj.put("distance", distance);
+            obj.put("website", website);
+            obj.put("openPeriods", openPeriods);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -93,6 +111,7 @@ public class Place {
 
     public static class PlaceBuilder {
         private String name;
+        private String address;
         private double lat;
         private double lon;
         private double rating;
@@ -101,9 +120,15 @@ public class Place {
         private int userRatingsTotal;
         private double score;
         private double distance;
+        private String website;
+        private JSONArray openPeriods;
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
         }
 
         public void setLat(double lat) {
@@ -129,6 +154,10 @@ public class Place {
         public void setUserRatingsTotal(int userRatingsTotal) {
             this.userRatingsTotal = userRatingsTotal;
         }
+
+        public void setWebsite(String website) {this.website = website; }
+
+        public void setOpenPeriods(JSONArray openPeriods) {this.openPeriods = openPeriods;}
 
         public Place build() {
             return new Place(this);

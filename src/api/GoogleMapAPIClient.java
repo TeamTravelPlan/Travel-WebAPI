@@ -22,6 +22,7 @@ public class GoogleMapAPIClient {
     private static final String HOST = "https://maps.googleapis.com";
     private static final String PATH = "/maps/api/place/nearbysearch/json";
     private static final String PHOTO_PATH = "/maps/api/place/photo";
+    private static final String DETAILS_PATH = "/maps/api/place/details/json";
     private static final String DEFAULT_TYPE = "tourist_attraction";
     private static final int DEFAULT_RADIUS = 100;
     private static final String API_KEY = "USE_YOUR_OWN_KEY";
@@ -127,12 +128,12 @@ public class GoogleMapAPIClient {
                 }
             }
 
-            if (!result.isNull("rating")){
-                builder.setRating(result.getDouble("rating"));
-            }
-
             if (!result.isNull("place_id")){
                 builder.setPlaceId(result.getString("place_id"));
+            }
+
+            if (!result.isNull("rating")){
+                builder.setRating(result.getDouble("rating"));
             }
 
             if (!result.isNull("user_ratings_total")){
@@ -167,21 +168,131 @@ public class GoogleMapAPIClient {
     // TODO: getPlaceDetails
     // https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&fields=name,rating,formatted_phone_number&key=YOUR_API_KEY
     // https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&key=AIzaSyA-xhthFchWNRXSkamJ8i2SzoEpTl3Fd1M
-    public void getPlaceDetails() {
-        return;
+    public Place getPlaceDetails(String placeId) {
+        if (placeId == null){
+            return new PlaceBuilder().build();
+        }
+
+        String query = String.format("place_id=%s&key=%s", placeId, API_KEY);
+        String url = HOST + DETAILS_PATH + "?" + query;
+        //System.out.println("myprint: " + url);
+
+        StringBuilder responseBody = new StringBuilder();
+        try {
+            // Create a URLConnection instance that represents a connection to the remote
+            // object referred to by the URL. The HttpUrlConnection class allows us to
+            // perform basic HTTP requests without the use of any additional libraries.
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            // Get the status code from an HTTP response message. To execute the request we
+            // can use the getResponseCode(), connect(), getInputStream() or
+            // getOutputStream() methods.
+            int responseCode = connection.getResponseCode();
+            System.out.println("Sending requests to url: " + url);
+            System.out.println("Response code: " + responseCode);
+
+            if (responseCode != 200) {
+                new PlaceBuilder().build();
+            }
+
+            // Create a BufferedReader to help read text from a character-input stream.
+            // Provide for the efficient reading of characters, arrays, and lines.
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                responseBody.append(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //System.out.println(responseBody.toString());
+        try {
+            JSONObject obj = new JSONObject(responseBody.toString());
+
+            if (!obj.isNull("result")){
+                return getPlace(obj.getJSONObject("result"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return new PlaceBuilder().build();
+    }
+
+    private Place getPlace(JSONObject result)  throws JSONException {
+        PlaceBuilder builder = new PlaceBuilder();
+
+        if (!result.isNull("name")) {
+            builder.setName(result.getString("name"));
+        }
+
+        if (!result.isNull("geometry")){
+            JSONObject geometry = result.getJSONObject("geometry");
+            if (!geometry.isNull("location")) {
+                JSONObject location = geometry.getJSONObject("location");
+
+                builder.setLat(location.getDouble("lat"));
+                builder.setLon(location.getDouble("lng"));
+            }
+        }
+
+        if (!result.isNull("formatted_address")) {
+            builder.setAddress(result.getString("formatted_address"));
+        }
+
+        if (!result.isNull("website")){
+            builder.setWebsite(result.getString("website"));
+        }
+
+        if (!result.isNull("opening_hours")){
+            JSONObject openingHours = result.getJSONObject("opening_hours");
+            if (!openingHours.isNull("periods")){
+                builder.setOpenPeriods(openingHours.getJSONArray("periods"));
+            }
+        }
+
+        if (!result.isNull("rating")){
+            builder.setRating(result.getDouble("rating"));
+        }
+
+        if (!result.isNull("user_ratings_total")){
+            builder.setUserRatingsTotal(result.getInt("user_ratings_total"));
+        }
+
+        builder.setImageUrl(getImageUrl(result));
+
+        return builder.build();
     }
 
     public static void main(String[] args) {
         GoogleMapAPIClient client = new GoogleMapAPIClient();
 
-        List<Place> places = client.getNearbyPlaces(-33.8670522, 151.1957362, null, DEFAULT_RADIUS);
-        System.out.println("places length: " + places.size());
-        System.out.println("places name: " + places.get(0).getName());
-        System.out.println("places lat: " + places.get(0).getLat());
-        System.out.println("places lon: " + places.get(0).getLon());
-        System.out.println("places rating: " + places.get(0).getRating());
-        System.out.println("places image url: " + places.get(0).getImageUrl());
-        System.out.println("places id: " + places.get(0).getPlaceId());
-        System.out.println("places rating total: " + places.get(0).getUserRatingsTotal());
+//        List<Place> places = client.getNearbyPlaces(-33.8670522, 151.1957362, null, DEFAULT_RADIUS);
+//        System.out.println("places length: " + places.size());
+//        System.out.println("places name: " + places.get(0).getName());
+//        System.out.println("places lat: " + places.get(0).getLat());
+//        System.out.println("places lon: " + places.get(0).getLon());
+//        System.out.println("places rating: " + places.get(0).getRating());
+//        System.out.println("places image url: " + places.get(0).getImageUrl());
+//        System.out.println("places id: " + places.get(0).getPlaceId());
+//        System.out.println("places rating total: " + places.get(0).getUserRatingsTotal());
+
+        Place place;
+        place = client.getPlaceDetails("ChIJVVUVkTeuEmsREx6jD41IUGw");
+
+        System.out.println("places name: " + place.getName());
+        System.out.println("places lat: " + place.getLat());
+        System.out.println("places lon: " + place.getLon());
+        System.out.println("places address: " + place.getAddress());
+        System.out.println("places website: " + place.getWebsite());
+        System.out.println("places open periods: " + place.getOpenPeriods());
+        System.out.println("places rating: " + place.getRating());
+        System.out.println("places rating total: " + place.getUserRatingsTotal());
+        System.out.println("places image url: " + place.getImageUrl());
     }
 }
